@@ -17,9 +17,8 @@ function setLoading(isLoading) {
 function showError(msg, details) {
   const box = $("errorBox");
   box.style.display = "block";
-  box.innerHTML = `<b>Erro:</b> ${escapeHtml(msg)}${
-    details ? `<pre>${escapeHtml(JSON.stringify(details, null, 2))}</pre>` : ""
-  }`;
+  box.innerHTML = `<b>Erro:</b> ${escapeHtml(msg)}${details ? `<pre>${escapeHtml(JSON.stringify(details, null, 2))}</pre>` : ""
+    }`;
 }
 
 function clearError() {
@@ -43,6 +42,40 @@ async function apiGet(path) {
     throw err;
   }
   return data;
+}
+
+function openModal() {
+  $("settingsModal").style.display = "flex";
+  $("modalMsg").textContent = "";
+  $("inpToken").value = "";
+  $("chkPersist").checked = false;
+}
+
+function closeModal() {
+  $("settingsModal").style.display = "none";
+}
+
+async function saveToken() {
+  $("modalMsg").textContent = "Salvando...";
+  const token = $("inpToken").value.trim();
+  const persist = $("chkPersist").checked;
+
+  const res = await fetch("/config/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, persist }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.error || `HTTP ${res.status}`);
+  }
+
+  $("modalMsg").textContent = `OK! Token atualizado (${data.token_masked}).`;
+
+  // Recarrega contas com o novo token
+  await loadAccounts();
+  closeModal();
 }
 
 function qs(params) {
@@ -236,6 +269,19 @@ async function run() {
 }
 
 function wire() {
+
+  $("btnSettings").addEventListener("click", openModal);
+  $("btnCloseModal").addEventListener("click", closeModal);
+  $("btnCancelToken").addEventListener("click", closeModal);
+
+  $("btnSaveToken").addEventListener("click", async () => {
+    try {
+      await saveToken();
+    } catch (e) {
+      $("modalMsg").textContent = `Erro: ${e.message}`;
+    }
+  });
+
   $("btnRun").addEventListener("click", run);
   $("selAccount").addEventListener("change", updateAccountHint);
 

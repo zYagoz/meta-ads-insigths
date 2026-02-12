@@ -4,6 +4,8 @@ require("dotenv").config();
 const DEFAULT_VERSION = process.env.META_API_VERSION || "v24.0";
 const BASE_URL = `https://graph.facebook.com/${DEFAULT_VERSION}`;
 
+const tokenStore = require("./tokenStore");
+
 // src/metaGraph.js (no topo)
 const fetchFn = globalThis.fetch
   ? globalThis.fetch.bind(globalThis)
@@ -47,8 +49,8 @@ function parseGraphError(payload) {
  * GET no Graph API com retry simples para rate limit (code 80004 ou 17)
  */
 async function graphGet(path, params = {}, opts = {}) {
-  const token = opts.accessToken || process.env.META_ACCESS_TOKEN;
-  if (!token) throw new Error("META_ACCESS_TOKEN não definido no .env");
+  const token = opts.accessToken || tokenStore.getToken();
+  if (!token) throw new Error("META_ACCESS_TOKEN não definido (use a engrenagem na UI).");
 
   const maxRetries = opts.maxRetries ?? 3;
 

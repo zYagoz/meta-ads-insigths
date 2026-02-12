@@ -1,3 +1,6 @@
+const fs = require("fs");
+const tokenStore = require("./tokenStore");
+
 // src/server.js
 require("dotenv").config();
 const path = require("path");
@@ -96,6 +99,67 @@ app.get("/adaccounts/:adAccountId/insights", async (req, res) => {
     res.status(400).json({ error: e.message, code: e.code, subcode: e.subcode, fbtrace_id: e.fbtrace_id });
   }
 });
+
+function updateDotEnvToken(envPath, newToken) {
+  let content = "";
+  try { content = fs.readFileSync(envPath, "utf8"); } catch { content = ""; }
+
+  const lines = content.split(/\r?\n/);
+  let found = false;
+
+  const updated = lines.map((line) => {
+    if (line.startsWith("META_ACCESS_TOKEN=")) {
+      found = true;
+      return `META_ACCESS_TOKEN=${newToken}`;
+    }
+    return line;
+  });
+
+  if (!found) updated.push(`META_ACCESS_TOKEN=${newToken}`);
+
+  // garante newline final
+  const finalText = updated.filter((l, i, arr) => !(i === arr.length - 1 && l === "")).join("\n") + "\n";
+
+  const tmp = envPath + ".tmp";
+  fs.writeFileSync(tmp, finalText, "utf8");
+  fs.renameSync(tmp, envPath);
+}
+
+// (opcional) endpoint pra UI mostrar estado
+app.get("/config", (_, res) => {
+  res.json({
+    has_token: tokenStore.hasToken(),
+    token_masked: tokenStore.maskedToken(),
+  });
+});
+
+// Atualiza token em tempo real
+app.post("/config/token", (req, res) => {
+  try {
+    const token = String(req.body?.token || "").trim();
+    const persist = Boolean(req.body?.persist);
+
+    if (!token || token.length < 20) {
+      return res.status(400).json({ error: "Token inválido (muito curto/ vazio)." });
+    }
+
+    tokenStore.setToken(token);
+
+    if (persist) {
+      const envPath = path.join(__dirname, "..", ".env");
+      updateDotEnvToken(envPath, token);
+    }
+
+    res.json({
+      ok: true,
+      persisted: persist,
+      token_masked: tokenStore.maskedToken(),
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 
 const port = Number(process.env.PORT || 3000);
 app.listen(port, () => console.log(`Rodando em http://localhost:${port}`));

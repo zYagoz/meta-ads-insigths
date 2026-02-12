@@ -1,11 +1,13 @@
 <!doctype html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Meta Ads Explorer</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
+
 <body>
   <div class="wrap">
     <header class="header">
@@ -13,7 +15,11 @@
         <h1>Meta Ads Explorer</h1>
         <p class="muted">Consulta visual: conta, estrutura e insights.</p>
       </div>
-      <button id="btnRun" class="btn">Buscar</button>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button id="btnSettings" class="iconBtn" title="Configurar Token">⚙️</button>
+        <button id="btnRun" class="btn">Buscar</button>
+      </div>
+
     </header>
 
     <section class="card">
@@ -123,10 +129,42 @@
     </section>
 
     <footer class="muted foot">
-      Token fica no back (.env). Se Insights vier vazio, revise level/período e permissões do token (ads_read/read_insights).
+      Token fica no back (.env). Se Insights vier vazio, revise level/período e permissões do token
+      (ads_read/read_insights).
     </footer>
   </div>
 
+  <div id="settingsModal" class="modal" style="display:none;">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <h2>Configurar META_ACCESS_TOKEN</h2>
+        <button id="btnCloseModal" class="iconBtn" title="Fechar">✖</button>
+      </div>
+
+      <div class="field">
+        <label>Novo Access Token</label>
+        <input id="inpToken" placeholder="Cole aqui o token..." />
+        <div class="hint">Ele fica salvo só no servidor (back). Não aparece no código.</div>
+      </div>
+
+      <div class="row" style="justify-content:flex-start;">
+        <label style="display:flex; gap:8px; align-items:center; font-size:13px; color:#47556a;">
+          <input id="chkPersist" type="checkbox" />
+          Salvar no .env (persistir após reiniciar)
+        </label>
+      </div>
+
+      <div id="modalMsg" class="hint" style="margin-top:8px;"></div>
+
+      <div class="row" style="margin-top:14px;">
+        <button id="btnSaveToken" class="btn">Salvar</button>
+        <button id="btnCancelToken" class="btn secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+
   <script src="./app.js"></script>
 </body>
+
 </html>
