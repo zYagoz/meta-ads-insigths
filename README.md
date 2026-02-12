@@ -23,204 +23,207 @@ A UI permite:
 ---
 
 ## Estrutura do projeto
-
+```
 meta-api/
-.env
-package.json
-src/
-metaGraph.js
-metaAds.js
-tokenStore.js
-server.js
-public/
-index.html
-app.js
-styles.css
-
+├── .env
+├── package.json
+├── src/
+│   ├── metaGraph.js
+│   ├── metaAds.js
+│   ├── tokenStore.js
+│   └── server.js
+└── public/
+    ├── index.html
+    ├── app.js
+    └── styles.css
+```
 
 ---
 
 ## Instalação
 
 Na raiz do projeto:
-
 ```bash
 npm install
-Crie o arquivo .env:
+```
 
+Crie o arquivo `.env`:
+```env
 META_ACCESS_TOKEN=SEU_TOKEN_AQUI
 META_API_VERSION=v24.0
 PORT=3000
-Rodar o projeto
+```
+
+## Rodar o projeto
+```bash
 npm start
+```
+
 Acesse:
+- **UI**: http://localhost:3000
+- **Health**: http://localhost:3000/health
 
-UI: http://localhost:3000
+---
 
-Health: http://localhost:3000/health
+## Interface (UI)
 
-Interface (UI)
 Na UI você encontra:
 
-Dropdown para escolher a conta
+- **Dropdown** para escolher a conta
+- **"Tipo de busca"**:
+  - Insights
+  - Campanhas
+  - AdSets
+  - Ads
 
-“Tipo de busca”:
+Para **Insights**, filtros:
+- `level` (campaign/adset/ad/account)
+- `date_preset` (last_7d, last_30d, etc)
+- `time_range` (since/until)
+- `time_increment` (1 diário / 7 semanal)
+- `effective_status` (ACTIVE/PAUSED/ARCHIVED)
+- `fields` (campos do insight)
+- `action_type` para calcular:
+  - `qualified_leads`
+  - `cpl_qualified`
 
-Insights
+### Atualizar Token pela UI (⚙️)
 
-Campanhas
+1. Clique no botão **⚙️**
+2. Cole o novo token
+3. (Opcional) marque **Salvar no .env**
+4. Salve
 
-AdSets
+Isso atualiza o token em tempo real sem precisar editar `.env` na mão.
 
-Ads
+---
 
-Para Insights, filtros:
+## Endpoints disponíveis (API)
 
-level (campaign/adset/ad/account)
-
-date_preset (last_7d, last_30d, etc)
-
-time_range (since/until)
-
-time_increment (1 diário / 7 semanal)
-
-effective_status (ACTIVE/PAUSED/ARCHIVED)
-
-fields (campos do insight)
-
-action_type para calcular:
-
-qualified_leads
-
-cpl_qualified
-
-Atualizar Token pela UI (⚙️)
-Clique no botão ⚙️
-
-Cole o novo token
-
-(Opcional) marque Salvar no .env
-
-Salve
-
-Isso atualiza o token em tempo real sem precisar editar .env na mão.
-
-Endpoints disponíveis (API)
-Health
+### Health
+```
 GET /health
+```
 
 Resposta:
-
+```json
 { "ok": true }
-Ad Accounts
+```
+
+### Ad Accounts
+```
 GET /adaccounts
+```
 
 Retorna as contas do usuário autenticado.
 
-Estrutura
+### Estrutura
+```
 GET /adaccounts/:adAccountId/campaigns
-
 GET /adaccounts/:adAccountId/adsets
-
 GET /adaccounts/:adAccountId/ads
+```
 
-Insights
+### Insights
+```
 GET /adaccounts/:adAccountId/insights
+```
 
 Query params principais:
-
-level = campaign | adset | ad | account
-
-date_preset = last_7d, last_30d, etc
-
-time_range = JSON string {"since":"YYYY-MM-DD","until":"YYYY-MM-DD"}
-
-time_increment = 1, 7, ...
-
-fields = "campo1,campo2,..."
-
-filtering = JSON string (ex.: filtro por ad.effective_status)
+- `level` = campaign | adset | ad | account
+- `date_preset` = last_7d, last_30d, etc
+- `time_range` = JSON string `{"since":"YYYY-MM-DD","until":"YYYY-MM-DD"}`
+- `time_increment` = 1, 7, ...
+- `fields` = "campo1,campo2,..."
+- `filtering` = JSON string (ex.: filtro por ad.effective_status)
 
 Exemplo:
-
+```bash
 curl "http://localhost:3000/adaccounts/123456789/insights?level=campaign&date_preset=last_7d&time_increment=1"
-Config de Token
-GET /config
+```
+
+### Config de Token
+
+**GET /config**  
 Retorna se há token e uma versão mascarada.
 
-POST /config/token
+**POST /config/token**  
 Atualiza o token.
 
 Body:
-
+```json
 {
   "token": "NOVO_TOKEN",
   "persist": true
 }
-persist=true tenta sobrescrever/atualizar a linha META_ACCESS_TOKEN= no .env.
+```
 
-Observações importantes
-Segurança
-Este projeto foi pensado para uso local (localhost).
-Se você publicar isso em servidor:
+`persist=true` tenta sobrescrever/atualizar a linha `META_ACCESS_TOKEN=` no `.env`.
 
-Proteja POST /config/token com autenticação (senha, JWT, IP allowlist, etc.)
+---
 
-Restrinja origens (CORS) e acesso à UI
+## Observações importantes
 
-Não exponha .env nem logs com token
+### Segurança
 
-Sobre expiração do token
-Tokens podem expirar dependendo do tipo (short-lived vs long-lived) e configurações do app.
-A UI facilita trocar o token sem mexer no .env.
+- Este projeto foi pensado para uso local (localhost).
+- Se você publicar isso em servidor:
+  - Proteja `POST /config/token` com autenticação (senha, JWT, IP allowlist, etc.)
+  - Restrinja origens (CORS) e acesso à UI
+  - Não exponha `.env` nem logs com token
 
-Permissões
+### Sobre expiração do token
+
+- Tokens podem expirar dependendo do tipo (short-lived vs long-lived) e configurações do app.
+- A UI facilita trocar o token sem mexer no `.env`.
+
+### Permissões
+
 Se alguma rota falhar, normalmente é:
+- Token inválido/expirado
+- Falta de `ads_read` / `read_insights`
+- Usuário sem acesso à conta de anúncio
+- Rate limit (o client tem retry simples para rate limit)
 
-Token inválido/expirado
+---
 
-Falta de ads_read / read_insights
+## Troubleshooting
 
-Usuário sem acesso à conta de anúncio
+### Insights vazio
 
-Rate limit (o client tem retry simples para rate limit)
+- Troque `level` (campaign/adset/ad)
+- Troque `date_preset` (last_7d → last_30d)
+- Teste `time_range` com datas válidas
+- Verifique se há gasto/campanhas no período
 
-Troubleshooting
-Insights vazio
-Troque level (campaign/adset/ad)
+### Erro de permissão
 
-Troque date_preset (last_7d -> last_30d)
+- Confirme que o token tem `ads_read` e `read_insights`
+- Confirme que o usuário do token tem acesso ao ad account
 
-Teste time_range com datas válidas
+### Node < 18 (sem fetch)
 
-Verifique se há gasto/campanhas no período
-
-Erro de permissão
-Confirme que o token tem ads_read e read_insights
-
-Confirme que o usuário do token tem acesso ao ad account
-
-Node < 18 (sem fetch)
 Instale:
-
+```bash
 npm i node-fetch
-E use o fallback no src/metaGraph.js conforme implementado no projeto.
+```
 
-Customizações rápidas
-Ajustar DEFAULT_FIELDS em public/app.js
+E use o fallback no `src/metaGraph.js` conforme implementado no projeto.
 
-Adicionar novos filtros no front e repassar via querystring para /insights
+---
 
-Criar “presets” (Fase 1/2/3 do funil) setando automaticamente:
+## Customizações rápidas
 
-action_type
+- Ajustar `DEFAULT_FIELDS` em `public/app.js`
+- Adicionar novos filtros no front e repassar via querystring para `/insights`
+- Criar "presets" (Fase 1/2/3 do funil) setando automaticamente:
+  - `action_type`
+  - `fields`
+  - `filtering`
+  - `level`
 
-fields
+---
 
-filtering
+## Licença
 
-level
-
-Licença
 Uso interno / conforme necessidade do seu projeto.
-
