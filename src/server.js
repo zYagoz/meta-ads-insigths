@@ -1,8 +1,8 @@
+require("dotenv").config();
 const fs = require("fs");
 const tokenStore = require("./tokenStore");
 
 // src/server.js
-require("dotenv").config();
 const path = require("path");
 const express = require("express");
 
