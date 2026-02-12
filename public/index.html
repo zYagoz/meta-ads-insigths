@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Meta Ads Explorer</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <div>
+        <h1>Meta Ads Explorer</h1>
+        <p class="muted">Consulta visual: conta, estrutura e insights.</p>
+      </div>
+      <button id="btnRun" class="btn">Buscar</button>
+    </header>
+
+    <section class="card">
+      <div class="grid">
+        <div class="field">
+          <label>Conta de anúncio</label>
+          <select id="selAccount"></select>
+          <div id="accountHint" class="hint"></div>
+        </div>
+
+        <div class="field">
+          <label>Tipo de busca</label>
+          <div class="tabs">
+            <button class="tab active" data-mode="insights">Insights</button>
+            <button class="tab" data-mode="campaigns">Campanhas</button>
+            <button class="tab" data-mode="adsets">AdSets</button>
+            <button class="tab" data-mode="ads">Ads</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="insightsBox" class="grid2">
+        <div class="field">
+          <label>Nível (level)</label>
+          <select id="selLevel">
+            <option value="campaign">campaign</option>
+            <option value="adset">adset</option>
+            <option value="ad">ad</option>
+            <option value="account">account</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Período (date_preset)</label>
+          <select id="selPreset">
+            <option value="today">today</option>
+            <option value="yesterday">yesterday</option>
+            <option value="last_7d" selected>last_7d</option>
+            <option value="last_14d">last_14d</option>
+            <option value="last_30d">last_30d</option>
+            <option value="this_month">this_month</option>
+            <option value="last_month">last_month</option>
+          </select>
+          <div class="hint">Ou use intervalo custom abaixo</div>
+        </div>
+
+        <div class="field">
+          <label>Since (YYYY-MM-DD)</label>
+          <input id="inpSince" placeholder="2026-02-01" />
+        </div>
+
+        <div class="field">
+          <label>Until (YYYY-MM-DD)</label>
+          <input id="inpUntil" placeholder="2026-02-11" />
+        </div>
+
+        <div class="field">
+          <label>Time increment</label>
+          <select id="selIncrement">
+            <option value="">(vazio)</option>
+            <option value="1">1 (diário)</option>
+            <option value="7">7 (semanal)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Status (effective_status)</label>
+          <select id="selStatus">
+            <option value="">(todos)</option>
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="PAUSED">PAUSED</option>
+            <option value="ARCHIVED">ARCHIVED</option>
+          </select>
+        </div>
+
+        <div class="field span2">
+          <label>Fields (campos do insight)</label>
+          <input id="inpFields" />
+          <div class="hint">Campos separados por vírgula</div>
+        </div>
+
+        <div class="field span2">
+          <label>Action type (pra “Lead qualificado”)</label>
+          <input id="inpActionType" placeholder="ex: complete_registration, lead, schedule..." />
+          <div class="hint">A tabela adiciona: qualified_leads e cpl_qualified</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <div class="muted"><span id="count">0</span> linhas</div>
+        <div class="row">
+          <button id="btnJson" class="btn secondary" disabled>Export JSON</button>
+          <button id="btnCsv" class="btn secondary" disabled>Export CSV</button>
+        </div>
+      </div>
+
+      <div id="errorBox" class="error" style="display:none;"></div>
+
+      <div class="tableWrap">
+        <table id="tbl">
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="muted foot">
+      Token fica no back (.env). Se Insights vier vazio, revise level/período e permissões do token (ads_read/read_insights).
+    </footer>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
